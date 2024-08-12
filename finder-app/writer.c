@@ -3,12 +3,12 @@
 #include <syslog.h>
 #include <errno.h>
 
-void main(int argc, char* argv[]){
+int main(int argc, char* argv[]){
 openlog(NULL,0,LOG_USER);
+int retval = 0;
     if(argc == 3){
         syslog(LOG_DEBUG,"Made it into if statement, Correct number of arguments.");
         FILE *fileptr;
-        int retval;
         fileptr = fopen(argv[1], "w");
         if(fileptr!=NULL){
             syslog(LOG_DEBUG,"Successfully opened file");
@@ -35,5 +35,7 @@ openlog(NULL,0,LOG_USER);
     }
     else{
         syslog(LOG_ERR, "Invalid number of arguments: %d", argc);
+        retval = 1;
     }
+return retval;
 }
