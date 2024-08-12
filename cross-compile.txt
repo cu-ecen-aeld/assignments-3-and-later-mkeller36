@@ -1,3 +1,4 @@
-/home/keller/Desktop/Arm/gcc-arm-10.3-2021.07-mingw-w64-i686-aarch64-none-linux-gnu/aarch64-none-linux-gnu
-aarch64-none-linux-gnu
-Version 10.3
+Using built-in specs.
+COLLECT_GCC=aarch64-none-linux-gnu-gcc
+COLLECT_LTO_WRAPPER=/home/keller/install-lnx/gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu/bin/../libexec/gcc/aarch64-none-linux-gnu/10.3.1/lto-wrapper
+/home/keller/install-lnx/gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu/bin/../aarch64-none-linux-gnu/libc
