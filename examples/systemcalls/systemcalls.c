@@ -1,4 +1,6 @@
 #include "systemcalls.h"
+#include <syslog.h>
+#include <errno.h>
 
 /**
  * @param cmd the command to execute with system()
@@ -16,8 +18,16 @@ bool do_system(const char *cmd)
  *   and return a boolean true if the system() call completed with success
  *   or false() if it returned a failure
 */
+    int retval;
+    retval = system(const char *cmd);
+    if(retval>0){
+        retval = true;
+    }
+    else{
+        retval = false; 
+    }
 
-    return true;
+    return retval;
 }
 
 /**
@@ -37,6 +47,7 @@ bool do_system(const char *cmd)
 bool do_exec(int count, ...)
 {
     va_list args;
+    openlog(NULL,0,LOG_USER);
     va_start(args, count);
     char * command[count+1];
     int i;
@@ -58,6 +69,24 @@ bool do_exec(int count, ...)
  *   as second argument to the execv() command.
  *
 */
+    pid_t pid; 
+    pid = fork();
+    if(pid==-1){
+        return false;
+    }
+    else if(pid==0){
+        const char *argv[count];
+
+        execv(command[0],command[1]);
+        exit (-1);
+    }
+
+    if(waitpid(pid,&status,0)==1){
+        return -1;
+    }
+    else if (WIFEXITED(status)){
+        return WEXITSTATUS(status);
+    }
 
     va_end(args);
 
@@ -92,6 +121,27 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
  *   The rest of the behaviour is same as do_exec()
  *
 */
+    int kidpid;
+    int fd = open("redirected.txt", O_WRONLY|O_TRUNC|O_CREAT, 0644);
+    if (fd < 0) { perror("open"); abort(); }
+    switch (kidpid = fork()) {
+    case -1: perror("fork"); abort();
+    case 0:
+        if (dup2(fd, 1) < 0) { perror("dup2"); abort(); }
+        close(fd);
+        execv(command[0],command[1]); perror("execvp"); abort();
+    default:
+        close(fd);
+        /* do whatever the parent wants to do. */
+    }
+
+    if(waitpid(pid,&status,0)==1){
+        return -1;
+    }
+    else if (WIFEXITED(status)){
+        return WEXITSTATUS(status);
+    }
+
 
     va_end(args);
 
