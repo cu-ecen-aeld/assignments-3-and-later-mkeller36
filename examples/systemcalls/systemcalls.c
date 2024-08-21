@@ -1,6 +1,16 @@
 #include "systemcalls.h"
 #include <syslog.h>
 #include <errno.h>
+#include <stdlib.h>
+/*libraries for open */
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+/*libraries for execl*/
+#include <unistd.h>
+#include <sys/wait.h>
+#include <stdio.h>
+
 
 /**
  * @param cmd the command to execute with system()
@@ -19,7 +29,7 @@ bool do_system(const char *cmd)
  *   or false() if it returned a failure
 */
     int retval;
-    retval = system(const char *cmd);
+    retval = system(cmd);
     if(retval>0){
         retval = true;
     }
@@ -69,15 +79,15 @@ bool do_exec(int count, ...)
  *   as second argument to the execv() command.
  *
 */
+    int status;
     pid_t pid; 
     pid = fork();
     if(pid==-1){
         return false;
     }
     else if(pid==0){
-        const char *argv[count];
 
-        execv(command[0],command[1]);
+        execv(command[0],command);
         exit (-1);
     }
 
@@ -101,6 +111,7 @@ bool do_exec(int count, ...)
 bool do_exec_redirect(const char *outputfile, int count, ...)
 {
     va_list args;
+    int status;
     va_start(args, count);
     char * command[count+1];
     int i;
@@ -129,13 +140,13 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
     case 0:
         if (dup2(fd, 1) < 0) { perror("dup2"); abort(); }
         close(fd);
-        execv(command[0],command[1]); perror("execvp"); abort();
+        execv(command[0],command); perror("execvp"); abort();
     default:
         close(fd);
         /* do whatever the parent wants to do. */
     }
 
-    if(waitpid(pid,&status,0)==1){
+    if(waitpid(kidpid,&status,0)==1){
         return -1;
     }
     else if (WIFEXITED(status)){
