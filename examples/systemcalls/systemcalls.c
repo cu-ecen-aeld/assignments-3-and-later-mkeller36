@@ -22,21 +22,10 @@
 bool do_system(const char *cmd)
 {
 
-/*
- * TODO  add your code here
- *  Call the system() function with the command set in the cmd
- *   and return a boolean true if the system() call completed with success
- *   or false() if it returned a failure
-*/
-    int retval;
+    int retval = false;
     retval = system(cmd);
-    if(retval>0){
-        retval = true;
-    }
-    else{
-        retval = false; 
-    }
-
+    if(retval>-1){retval = true;}
+    else{retval = false;}
     return retval;
 }
 
@@ -70,37 +59,33 @@ bool do_exec(int count, ...)
     // and may be removed
     command[count] = command[count];
 
-/*
- * TODO:
- *   Execute a system command by calling fork, execv(),
- *   and wait instead of system (see LSP page 161).
- *   Use the command[0] as the full path to the command to execute
- *   (first argument to execv), and use the remaining arguments
- *   as second argument to the execv() command.
- *
-*/
     int status;
     pid_t pid; 
     pid = fork();
-    if(pid==-1){
+    fflush(stdout);
+    if(pid<0){
         return false;
     }
     else if(pid==0){
 
-        execv(command[0],command);
-        exit (-1);
+        if(execv(command[0],command)==-1){
+            exit(EXIT_FAILURE);
+        }
     }
 
-    if(waitpid(pid,&status,0)==1){
-        return -1;
-    }
-    else if (WIFEXITED(status)){
-        return WEXITSTATUS(status);
+    if(waitpid(pid,&status,0)==-1){
+        return false;
     }
 
-    va_end(args);
-
-    return true;
+    if (WIFEXITED(status) && !WEXITSTATUS(status)) {
+        /*check if exited and the exit status */
+        va_end(args);
+        return true;
+    } else {
+        // Command failed
+        va_end(args);
+        return false;
+    }
 }
 
 /**
@@ -132,29 +117,47 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
  *   The rest of the behaviour is same as do_exec()
  *
 */
-    int kidpid;
     int fd = open("redirected.txt", O_WRONLY|O_TRUNC|O_CREAT, 0644);
-    if (fd < 0) { perror("open"); abort(); }
-    switch (kidpid = fork()) {
-    case -1: perror("fork"); abort();
-    case 0:
-        if (dup2(fd, 1) < 0) { perror("dup2"); abort(); }
+    if (fd < 0) { 
+        perror("open"); 
+        abort(); 
+    }
+
+    pid_t kidpid = fork();
+    if(kidpid == -1){ 
+        perror("fork"); 
+        abort();
+        return false;
+    }
+    else if (kidpid == 0){
+        if (dup2(fd, STDOUT_FILENO) < 0){ 
+            perror("dup2"); 
+            abort();
+            close(fd);
+            exit(EXIT_FAILURE); 
+            }
         close(fd);
-        execv(command[0],command); perror("execvp"); abort();
-    default:
+        execv(command[0],command); perror("execv"); abort();
+        exit(EXIT_FAILURE);
+    }
+    else{
+        if (waitpid(kidpid, &status, 0) == -1) {
+            perror("waitpid failed");
+            va_end(args);
+            return false;
+        }
         close(fd);
         /* do whatever the parent wants to do. */
+
+
+        if (WIFEXITED(status) && !WEXITSTATUS(status)) {
+            /*check if exited and the exit status */
+            va_end(args);
+            return true;
+        } else {
+            // Command failed
+            va_end(args);
+            return false;
+        }
     }
-
-    if(waitpid(kidpid,&status,0)==1){
-        return -1;
-    }
-    else if (WIFEXITED(status)){
-        return WEXITSTATUS(status);
-    }
-
-
-    va_end(args);
-
-    return true;
 }
