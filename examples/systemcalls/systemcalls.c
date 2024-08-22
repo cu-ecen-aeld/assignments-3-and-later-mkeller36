@@ -117,19 +117,23 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
  *   The rest of the behaviour is same as do_exec()
  *
 */
+    /*Open file as write only*/
     int fd = open(outputfile, O_WRONLY);
     if (fd < 0) { 
+        /*Check if file did not open correctly*/
         perror("open"); 
         abort(); 
     }
-
+    /*Fork Process*/
     pid_t kidpid = fork();
-    if(kidpid == -1){ 
+    if(kidpid == -1){
+        /*Check if fork failed*/ 
         perror("fork"); 
         abort();
         return false;
     }
     else if (kidpid == 0){
+        /*If this is the child process*/
         if (dup2(fd, STDOUT_FILENO) < 0){ 
             perror("dup2"); 
             abort();
