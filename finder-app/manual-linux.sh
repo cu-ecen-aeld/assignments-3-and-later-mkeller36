@@ -43,6 +43,7 @@ if [ ! -e ${OUTDIR}/linux-stable/arch/${ARCH}/boot/Image ]; then
     make ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- modules 
     # build device tree 
     make ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- dtbs 
+    # end TODO
 fi
 
 echo "Adding the Image in outdir"
@@ -59,6 +60,7 @@ fi
 mkdir -p bin dev etc home lib lib64 proc sbin sys tmp usr var
 mkdir -p usr/bin usr/lib usr/sbin
 mkdir -p var/log
+# END TODO
 
 cd "$OUTDIR"
 if [ ! -d "${OUTDIR}/busybox" ]
@@ -76,6 +78,7 @@ make distclean
 make defconfig
 make ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE}
 make CONFIG_PREFIX=linuxroots/assignment3/rootfs ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE} install
+# END TODO
 
 echo "Library dependencies"
 ${CROSS_COMPILE}readelf -a bin/busybox | grep "program interpreter"
