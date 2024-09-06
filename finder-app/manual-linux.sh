@@ -35,6 +35,14 @@ if [ ! -e ${OUTDIR}/linux-stable/arch/${ARCH}/boot/Image ]; then
     git checkout ${KERNEL_VERSION}
 
     # TODO: Add your kernel build steps here
+    # deep clean, removes .config file 
+    make ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- mrproper
+    # build a kernal image for booting with qemu 
+    make -j4 ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- all
+    # build kernel modules 
+    make ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- modules 
+    # build device tree 
+    make ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- dtbs 
 fi
 
 echo "Adding the Image in outdir"
