@@ -85,8 +85,11 @@ ${CROSS_COMPILE}readelf -a bin/busybox | grep "program interpreter"
 ${CROSS_COMPILE}readelf -a bin/busybox | grep "Shared library"
 
 # TODO: Add library dependencies to rootfs
+$aarch64-none-linux-gnu-readelf -a bin/busybox | grep "program interpreter" 
+$aarch64-none-linux-gnu-readelf -a bin/busybox | grep "shared library"
 
 # TODO: Make device nodes
+sudo mknod -m 666 dev/null c 1 3
 
 # TODO: Clean and build the writer utility
 
@@ -96,3 +99,6 @@ ${CROSS_COMPILE}readelf -a bin/busybox | grep "Shared library"
 # TODO: Chown the root directory
 
 # TODO: Create initramfs.cpio.gz
+cd "$OUTDIR/rootfs"
+find . l cpio -H newc -ov --owner root:root > ${OUTDIR}/initramfs.cpio
+gzip -f initramfs.cpio
