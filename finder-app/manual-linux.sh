@@ -13,6 +13,7 @@ FINDER_APP_DIR=$(realpath $(dirname $0))
 ARCH=arm64
 CROSS_COMPILE=aarch64-none-linux-gnu-
 
+#if passed one argument
 if [ $# -lt 1 ]
 then
 	echo "Using default directory ${OUTDIR} for output"
@@ -40,9 +41,9 @@ if [ ! -e ${OUTDIR}/linux-stable/arch/${ARCH}/boot/Image ]; then
     # build a kernal image for booting with qemu 
     make -j4 ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- all
     # build kernel modules 
-    make ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- modules 
+    # make ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- modules 
     # build device tree 
-    make ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- dtbs 
+    # make ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- dtbs 
     # end TODO
 fi
 
@@ -69,13 +70,13 @@ git clone git://busybox.net/busybox.git
     cd busybox
     git checkout ${BUSYBOX_VERSION}
     # TODO:  Configure busybox
+    make distclean
+    make defconfig
 else
     cd busybox
 fi
 
 # TODO: Make and install busybox
-make distclean
-make defconfig
 make ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE}
 make CONFIG_PREFIX=linuxroots/assignment3/rootfs ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE} install
 # END TODO
@@ -85,11 +86,12 @@ ${CROSS_COMPILE}readelf -a bin/busybox | grep "program interpreter"
 ${CROSS_COMPILE}readelf -a bin/busybox | grep "Shared library"
 
 # TODO: Add library dependencies to rootfs
-$aarch64-none-linux-gnu-readelf -a bin/busybox | grep "program interpreter" 
-$aarch64-none-linux-gnu-readelf -a bin/busybox | grep "shared library"
+aarch64-none-linux-gnu-readelf -a bin/busybox | grep "program interpreter" 
+aarch64-none-linux-gnu-readelf -a bin/busybox | grep "shared library"
 
 # TODO: Make device nodes
 sudo mknod -m 666 dev/null c 1 3
+sudo mknod -m 600 dev/console c 5 1
 
 # TODO: Clean and build the writer utility
 
@@ -100,5 +102,5 @@ sudo mknod -m 666 dev/null c 1 3
 
 # TODO: Create initramfs.cpio.gz
 cd "$OUTDIR/rootfs"
-find . l cpio -H newc -ov --owner root:root > ${OUTDIR}/initramfs.cpio
+find . | cpio -H newc -ov --owner root:root > ${OUTDIR}/initramfs.cpio
 gzip -f initramfs.cpio
